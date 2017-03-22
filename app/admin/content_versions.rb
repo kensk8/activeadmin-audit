@@ -2,6 +2,7 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
 
   actions :index, :show
 
+
   filter :item_type, input_html: { class: 'chosen' }, as: :select
   filter :event, input_html: { class: 'chosen' }, as: :select
   filter :whodunnit, input_html: { class: 'chosen' }, as: :select,
@@ -18,10 +19,14 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
     column :item_type
     column :event
     column :who do |w|
-      if AdminUser.find_by_id(w.whodunnit)
-        link_to AdminUser.find(w.whodunnit).email, [:admin, AdminUser.find(w.whodunnit)]
+      unless w.whodunnit.nil?
+        if AdminUser.find_by_id(w.whodunnit)
+          link_to AdminUser.find(w.whodunnit).email, [:admin, AdminUser.find(w.whodunnit)]
+        else
+          link_to User.find(w.whodunnit).email, [:admin, User.find(w.whodunnit)]
+        end
       else
-        link_to User.find(w.whodunnit).email, [:admin, User.find(w.whodunnit)]
+        "Automated Task"
       end
     end
 
@@ -35,6 +40,12 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
     actions
   end
 
+  controller do
+    def scoped_collection
+      super.where.not(whodunnit: nil)
+    end
+  end
+
   show do |version|
     panel version.item_type do
       attributes_table_for version do
@@ -42,10 +53,12 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
         row :item_type
         row :event
         row :who do |w|
-          if AdminUser.find_by_id(w.whodunnit)
+          if w.whodunnit && AdminUser.find_by_id(w.whodunnit)
             link_to AdminUser.find(w.whodunnit).email, [:admin, AdminUser.find(w.whodunnit)]
-          else
+          elsif w.whodunnit
             link_to User.find(w.whodunnit).email, [:admin, User.find(w.whodunnit)]
+          else
+            "Automated Task"
           end
         end
         row :created_at
@@ -70,4 +83,5 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
       additional_objects_snapshot: version.additional_objects_snapshot,
     }
   end
+
 end
