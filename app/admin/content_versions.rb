@@ -1,5 +1,4 @@
 ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
-  menu parent: 'System'
 
   actions :index, :show
 
@@ -18,7 +17,14 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
     column :item
     column :item_type
     column :event
-    column :who
+    column :who do |w|
+      if AdminUser.find_by_id(w.whodunnit)
+        link_to AdminUser.find(w.whodunnit).email, [:admin, AdminUser.find(w.whodunnit)]
+      else
+        link_to User.find(w.whodunnit).email, [:admin, User.find(w.whodunnit)]
+      end
+    end
+
     column :object_changes do |version|
       version_attributes_diff(version.object_changes)
     end
@@ -35,7 +41,13 @@ ActiveAdmin.register ActiveAdmin::Audit::ContentVersion, as: 'ContentVersion' do
         row :item
         row :item_type
         row :event
-        row :who
+        row :who do |w|
+          if AdminUser.find_by_id(w.whodunnit)
+            link_to AdminUser.find(w.whodunnit).email, [:admin, AdminUser.find(w.whodunnit)]
+          else
+            link_to User.find(w.whodunnit).email, [:admin, User.find(w.whodunnit)]
+          end
+        end
         row :created_at
       end
     end
